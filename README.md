@@ -1,4 +1,4 @@
-# Contrua um computador Moderno
+# Construa um computador Moderno
 
 Construa um computador moderno a partir dos primeiros princípios: do Nand ao Tetris
 
