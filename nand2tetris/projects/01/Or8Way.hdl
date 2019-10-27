@@ -13,11 +13,11 @@ CHIP Or8Way {
     OUT out;
 
     PARTS:
-    Or(a=in[0], b=in[1], out=outAux);
-    Or(a=outAux, b=in[2], out=outAux);
-    Or(a=outAux, b=in[3], out=outAux);
-    Or(a=outAux, b=in[4], out=outAux);
-    Or(a=outAux, b=in[5], out=outAux);
-    Or(a=outAux, b=in[6], out=outAux);
-    Or(a=outAux, b=in[7], out=out);
+    Or(a=in[0], b=in[1], out=outAux1);
+    Or(a=outAux1, b=in[2], out=outAux2);
+    Or(a=outAux2, b=in[3], out=outAux3);
+    Or(a=outAux3, b=in[4], out=outAux4);
+    Or(a=outAux4, b=in[5], out=outAux5);
+    Or(a=outAux5, b=in[6], out=outAux6);
+    Or(a=outAux6, b=in[7], out=out);
 }
