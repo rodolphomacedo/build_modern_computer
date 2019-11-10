@@ -16,5 +16,16 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-     
+    /* Vector Increment */
+    Inc16(in=outrecv, out=incout);
+    
+    /* Vector zero */
+    Not16(in=in, out=notin);
+    And16(a=in, b=notin, out=resetout);
+
+    Mux16(a=in, b=incout, sel=inc, out=outInc);
+    Mux16(a=outInc, b=in, sel=load, out=outLoad);
+    Mux16(a=outLoad, b=resetout, sel=reset, out=outReset);
+
+    Register(in=outReset, load=true, out=out, out=outrecv);
 }
