@@ -22,10 +22,44 @@
  * Screen and Keyboard chip specifications given in the book.
  */
 
+
 CHIP Memory {
     IN in[16], load, address[15];
     OUT out[16];
 
     PARTS:
-    // Put your code here:
-}
+    /*  
+    Memory = 2^12 * 4 = 16384 = [0..16383] 
+    Screen = 8k = [16384..24575]
+    Keyboard = 1 = [24576]
+
+    000000000000000 = 0 
+    011111111111111 = 16383  - Memory
+
+    100000000000000 = 16384
+    101111111111111 = 24575 - Screen
+
+    110000000000000 = 24576 - Keyboard 
+    */
+        
+    DMux4Way(in=load, sel=address[13..14], a=ram1, b=ram2, c=scr, d=kbd);
+    
+    Or(a=ram1, b=ram2, out=ram);
+    RAM16K(in=in, load=ram, address=address[0..13], out=ramout);
+    /* 
+    Screen split memory
+    100111111111111 = 20479
+    101000000000000 = 20480
+    */
+    DMux(in=scr, sel=address[12], a=scra, b=scrb);
+
+    RAM4K(in=in, load=scra, address=address[0..11], out=rama); 
+    RAM4K(in=in, load=scrb, address=address[0..11], out=ramb); 
+    
+    Mux16(a=rama, b=ramb, sel=address[12], out=scrout); 
+    
+    /* Keyboard */
+    Register(in=in, load=kbd, out=kbdout);
+
+    Mux4Way16(a=ramout, b=ramout, c=scrout, d=kbdout, sel=address[13..14], out=out); 
+ }
