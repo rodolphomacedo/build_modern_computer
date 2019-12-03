@@ -39,5 +39,66 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+
+    Not(in=instruction[15], out=instructionLoad);
+    Mux16(a=outALURA, b=instruction, sel=instructionLoad, out=outInstruction);
+    
+    Or(a=instructionLoad, b=instruction[5], out=outLoad);
+    ARegister(in=outInstruction, load=outLoad, out[0..14]=addressM, out=outRegisterA);
+
+    And(a=instruction[15], b=instruction[12], out=outROM); /* inM input */
+    Mux16(a=outRegisterA, b=inM, sel=outROM, out=outMux2);
+
+    ALU(x=outRegisterD, y=outMux2, 
+        zx=instruction[11],
+        nx=instruction[10], 
+        zy=instruction[9],
+        ny=instruction[8], 
+        f=instruction[7], 
+        no=instruction[6],
+        out=outALURD, out=outALURA, out=outM, zr=zr, ng=ng);
+
+    And(a=instruction[15], b=instruction[4], out=outLoadRD);
+    DRegister(in=outALURD, load=outLoadRD, out=outRegisterD);
+
+    And(a=instruction[15], b=instruction[3], out=writeM); /* writerM output */
+    /*
+        Video 5.3 26:26 
+      2 - instruction[0]    
+      1 - instruction[1]    
+      0 - instruction[2]
+      
+      From ALU:
+        zr = 1 - if result ALU is 0
+        ng = 1 - if result ALU is < 0
+     |========================================|
+     |   0    1   2   |        Effect         |     
+     |  [2]  [1] [0]  |                       |     
+     |----------------------------------------|
+     |   0    0   0   | No jump             - |
+     |   0    0   1   | if out >  0 Jump   JGT|.
+     |   0    1   0   | if out == 0 Jump   JEQ|.
+     |   0    1   1   | if out >= 0 Jump   JGE|
+     |   1    0   0   | if out <  0 Jump   JLT|.
+     |   1    0   1   | if out !=  0 Jump  JNE|
+     |   1    1   0   | if out <= 0 Jump   JLE|
+     |   1    1   1   | Jump Unconditional JMP|
+     |========================================*/
+
+    Not(in=ng, out=nng);
+    Not(in=zr, out=nzr);
+    And(a=nng, b=nzr, out=posGTzr);
+    And(a=instruction[15], b=instruction[0], out=jgt); /* The output ALU is positive? */
+    And(a=jgt, b=posGTzr, out=load1); /* Jump JGT */
+
+    And(a=instruction[15], b=instruction[1], out=jeq); /* The output ALU is zero? */
+    And(a=jeq, b=zr, out=load2); /* Jump JEQ*/
+
+    And(a=instruction[15], b=instruction[2], out=jlt); /* The output ALU is negative? */
+    And(a=jlt, b=ng, out=load3); /* Jump JLT */
+
+    Or(a=load1, b=load2, out=loadAux);
+    Or(a=load3, b=loadAux, out=loadOut); 
+
+    PC(in=outRegisterA, load=loadOut, inc=true, reset=reset, out[0..14]=pc);
 }
